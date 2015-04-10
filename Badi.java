@@ -21,6 +21,10 @@ public class Badi{
     // Calculate current Badi date (from 2015-2064)
     // Parameters: Day of Gregorian Year and Gregorian Year
 
+    public static final int ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR = 1843;
+    public static final int DAYS_IN_BADI_MONTH = 19;
+    public static final int DAYS_BETWEEN_NAWRUZ_AND_AYYAMIHA_START = 18 * DAYS_IN_BADI_MONTH;
+
     public static int[] Badi2Gregorian(int byear, int bmonth, int bday) {
         // Returns the Gregorian date as an array [year, month, day of month, day of year]
         // parameters: badi year, badi month, and badi day
@@ -115,14 +119,19 @@ public class Badi{
         return hdArray[i];
     }
 
+    private static final byte[] nrArray = {1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0};
+
     private static int nawRuzParameter(int yearIndex) {
-        // Naw Ruz on March 21st; list for the years 2014-2064
-        int[] nrArray = {1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0};
-        if (yearIndex<nrArray.length) {
-            return nrArray[yearIndex];
-        }else{
-            return -1;
-        }
+	if (yearIndex < 0) throw new IllegalArgumentException("Naw-Ruz parameter only defined from year index 0 which is gregorian year 2014");
+	if (yearIndex >= nrArray.length) throw new IllegalArgumentException("Naw-Ruz only defined until " + (2014 + nrArray.length - 1));
+	return nrArray[yearIndex];
+    }
+
+    static int nawRuzDayOfMarch(int gregorianYear) {
+	if (gregorianYear < 1900) throw new IllegalArgumentException("Naw-Ruz only defined for dates after 1900");
+	if (gregorianYear < 2014) return 21; //Use the western date for Naw-Ruz prior to 2014
+	final int yearIndex = gregorianYear - 2014;
+	return 20 + nawRuzParameter(yearIndex);
     }
 
     private static int twinBDays(int yearIndex) {
