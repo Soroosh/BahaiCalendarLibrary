@@ -31,7 +31,7 @@ public class Badi{
             leapyear = isLeapYear(gyear),
             nawRuz = nawRuzParameter(yearIndex),
             d, m, day, ndate, date;
-            Calendar calendar = new GregorianCalendar();  
+	Calendar calendar = new GregorianCalendar();  
 
         bdoy = (bmonth-1)*19 + bday;
         // special case Month of Ala after Ayyam'i'Ha
@@ -41,14 +41,14 @@ public class Badi{
             doy = bdoy - 287 + nawRuz;
             gyear = byear + 1844;
         }
-System.out.println(bdoy);
+	System.out.println(bdoy);
  
-    //update a date
-    calendar.set(Calendar.YEAR, gyear);
-    calendar.set(Calendar.DAY_OF_YEAR, doy);
-    m = calendar.get(Calendar.MONTH)+1;
-    d = calendar.get(Calendar.DAY_OF_MONTH);
-
+	//update a date
+        calendar.set(Calendar.YEAR, gyear);
+        calendar.set(Calendar.DAY_OF_YEAR, doy);
+	m = calendar.get(Calendar.MONTH)+1;
+	d = calendar.get(Calendar.DAY_OF_MONTH);
+	
         int[] tmp = {gyear, m, d, doy};
         return tmp;
     }
