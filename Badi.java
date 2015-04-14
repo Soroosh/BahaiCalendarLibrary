@@ -20,7 +20,7 @@ import java.util.GregorianCalendar;
 
 public class Badi{
     // By Soroosh Pezeshki April 2015
-    // Calculate current Badi date (from 2015-2064)
+    // Calculate current Badi date (from 1900-2064)
     // Parameters: Day of Gregorian Year and Gregorian Year
 
     public static final int ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR = 1843;
@@ -28,7 +28,7 @@ public class Badi{
     public static final int DAYS_BETWEEN_NAWRUZ_AND_AYYAMIHA_START = 18 * DAYS_IN_BADI_MONTH;
 
     public static int[] Badi2Gregorian(int byear, int bmonth, int bday) {
-        // Returns the Gregorian date as an array [year, month, day of month, day of year]
+        // Returns the Gregorian date as an array [year, month, day of month, day of year, holyday]
         // parameters: badi year, badi month, and badi day
         int doy,
             bdoy,
@@ -36,8 +36,10 @@ public class Badi{
             yearIndex = gyear - 2014,
             leapyear = isLeapYear(gyear),
             nawRuz = nawRuzParameter(yearIndex),
-            d, m, day, ndate, date;
-	Calendar calendar = new GregorianCalendar();  
+            d, m, day, ndate, date,
+            holyday=-1;
+
+        Calendar calendar = new GregorianCalendar();  
 
         bdoy = (bmonth-1)*19 + bday;
         // special case Month of Ala after Ayyam'i'Ha
@@ -47,20 +49,33 @@ public class Badi{
             doy = bdoy - 287 + nawRuz;
             gyear = byear + 1844;
         }
-	System.out.println(bdoy);
  
-	//update a date
+        //update a date
         calendar.set(Calendar.YEAR, gyear);
         calendar.set(Calendar.DAY_OF_YEAR, doy);
-	m = calendar.get(Calendar.MONTH)+1;
-	d = calendar.get(Calendar.DAY_OF_MONTH);
+        m = calendar.get(Calendar.MONTH)+1;
+        d = calendar.get(Calendar.DAY_OF_MONTH);
 	
-        int[] tmp = {gyear, m, d, doy};
+        // Check if date is a Holy day 
+        for (int i=0;  i<11; i++){
+            int hdday = holydays(i);
+            if (yearIndex>0){
+                if (i == 7) {
+                    hdday = twinBDays(yearIndex);
+                } else if (i == 8) {
+                    hdday = twinBDays(yearIndex) + 1;
+                }
+            }
+            if (hdday==bdoy) holyday = i;
+        }
+
+
+        int[] tmp = {gyear, m, d, doy, holyday};
         return tmp;
     }
 
     public static int[] Gregorian2Badi(int year, int month, int day) {
-        // Returns an array with the Badi Dates: Day of th month, month, year, day of the year
+        // Returns an array with the Badi Dates: Day of th month, month, year, day of the year, holyday
         // Input day of the Gregorian year and Gregorian year
         int badiYear = 0;
         int badiDay = 0, badiMonth = 0, dayOfBadiYear = 0;
@@ -94,12 +109,16 @@ public class Badi{
             badiMonth = 20;
             badiDay = dayOfBadiYear - 346 - nawRuz * (1-nawRuzLastYear);
         }
+
+        // Check if date is a Holy day 
         for (int i=0;  i<11; i++){
             int hdday = holydays(i);
-            if (i == 7) {
-                hdday = twinBDays(yearIndex);
-            } else if (i == 8) {
-                hdday = twinBDays(yearIndex) + 1;
+            if (yearIndex>0){
+                if (i == 7) {
+                    hdday = twinBDays(yearIndex);
+                } else if (i == 8) {
+                    hdday = twinBDays(yearIndex) + 1;
+                }
             }
             if (hdday==dayOfBadiYear) holyday = i;
         }
@@ -117,14 +136,14 @@ public class Badi{
     private static int holydays(int i){
         // return the day of the year of a Holy day
         // the values for the Birth of Bab and Baha'u'llah are placeholder and are read from another array
-        int[] hdArray = {1, 32, 40, 43, 65, 70, 112, 217, 237, 251, 253};
+        int[] hdArray = {1, 32, 40, 43, 65, 70, 112, 214, 237, 251, 253};
         return hdArray[i];
     }
 
     private static final byte[] nrArray = {1,1,0,0,1,1,0,0,1,1,0,0,1,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0};
 
     private static int nawRuzParameter(int yearIndex) {
-	if (yearIndex < 0) throw new IllegalArgumentException("Naw-Ruz parameter only defined from year index 0 which is gregorian year 2014");
+	if (yearIndex < 0) return 1; //Use the western date for Naw-Ruz prior to 172
 	if (yearIndex >= nrArray.length) throw new IllegalArgumentException("Naw-Ruz only defined until " + (2014 + nrArray.length - 1));
 	return nrArray[yearIndex];
     }
@@ -138,7 +157,7 @@ public class Badi{
 
     private static int twinBDays(int yearIndex) {
         // Return the Day of the year for the Birth of Bab; list for the years 2014-2064
-        int[] nrArray = {236,238,227,216,234,223,213,232,220,210,228,217,235,224,214,233,223,211,230,219,238,226,215,234,224,213,232,221,210,228,217,236,225,214,233,223,212,230,219,237,227,215,234,224,213,232,220,209,228,218,236};
+        int[] nrArray = {217,238,227,216,234,223,213,232,220,210,228,217,235,224,214,233,223,211,230,219,238,226,215,234,224,213,232,221,210,228,217,236,225,214,233,223,212,230,219,237,227,215,234,224,213,232,220,209,228,218,236};
         if (yearIndex<nrArray.length) {
             return nrArray[yearIndex];
         }else{

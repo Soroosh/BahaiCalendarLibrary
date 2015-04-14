@@ -4,10 +4,11 @@ A Baha'i Calendar (also known as Badi Calendar) Java library with the changes fr
 This library has two public functions:
 Gregorian2Badi and Badi2Gregorian.
 
-Badi2Gregorian(int year , int month , int day) returns an integer array with the Gregorian Date [year, month, day of the month, day of the year]
+Badi2Gregorian(int year , int month , int day) returns an integer array with the Gregorian Date [year, month, day of the month, day of the year, holyday]
 
 Gregorian2Badi(int year, int month, int day) returns an integer array with the Badi date in the format
 [year, month, day of month, day of the year, holyday]
+
 Holyday has the following values
 -1 if the date is not a holyday
 0 if it's Naw Ruz
