@@ -7,7 +7,7 @@ Gregorian2Badi and Badi2Gregorian.
 Badi2Gregorian(int year , int month , int day) returns an integer array with the Gregorian Date [year, month, day of the month, day of the year, holyday]
 
 Gregorian2Badi(int year, int month, int day) returns an integer array with the Badi date in the format
-[year, month, day of month, day of the year, holyday]
+[year, month, day of month, day of the year, holyday, year in vahid vahid, kull-i-shay]
 
 Holyday has the following values
 -1 if the date is not a holyday

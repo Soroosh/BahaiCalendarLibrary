@@ -1,13 +1,12 @@
 package badicalendar;
 
+// Version 1.1
 // Copyright 2015 Soroosh Pezeshki
-
+//
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
-
 //     http://www.apache.org/licenses/LICENSE-2.0
-
 // Unless required by applicable law or agreed to in writing, software
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,8 +19,7 @@ import java.util.GregorianCalendar;
 
 public class Badi{
     // By Soroosh Pezeshki April 2015
-    // Calculate current Badi date (from 1900-2064)
-    // Parameters: Day of Gregorian Year and Gregorian Year
+    // Calculate current Badi and Gregrian date (from 1900-2064)
 
     public static final int ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR = 1843;
     public static final int DAYS_IN_BADI_MONTH = 19;
@@ -75,7 +73,7 @@ public class Badi{
     }
 
     public static int[] Gregorian2Badi(int year, int month, int day) {
-        // Returns an array with the Badi Dates: Day of th month, month, year, day of the year, holyday
+        // Returns an array with the Badi Dates: Day of th month, month, year, day of the year, holyday, year in vahid, vahid, kull-i-shay 
         // Input day of the Gregorian year and Gregorian year
         int badiYear = 0;
         int badiDay = 0, badiMonth = 0, dayOfBadiYear = 0;
@@ -84,6 +82,7 @@ public class Badi{
         int nawRuz = nawRuzParameter(yearIndex);
         int nawRuzLastYear = nawRuzParameter(yearIndex - 1);
         int doy, holyday=-1;
+        int vahid, yearInVahid, kull, tmpkull;
         Calendar calendar = new GregorianCalendar();
 
         calendar.set(Calendar.YEAR, year);
@@ -110,6 +109,14 @@ public class Badi{
             badiDay = dayOfBadiYear - 346 - nawRuz * (1-nawRuzLastYear);
         }
 
+        yearInVahid = badiYear%19;
+        if(yearInVahid==0) yearInVahid=19;
+        vahid=(badiYear-yearInVahid)/19 + 1;
+        tmpkull = badiYear%361;
+        if (tmpkull==0) tmpkull=361;
+        kull = (badiYear-tmpkull)/361 + 1;
+
+
         // Check if date is a Holy day 
         for (int i=0;  i<11; i++){
             int hdday = holydays(i);
@@ -123,7 +130,7 @@ public class Badi{
             if (hdday==dayOfBadiYear) holyday = i;
         }
 
-        int[] date = {badiYear,badiMonth,badiDay,dayOfBadiYear, holyday};
+        int[] date = {badiYear,badiMonth,badiDay,dayOfBadiYear, holyday, yearInVahid, vahid, kull};
         return date;
     }
 
