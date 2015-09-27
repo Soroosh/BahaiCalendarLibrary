@@ -1,5 +1,5 @@
 /**
- * Version 1.2
+ * Version 2.0
  * Copyright 2015 Soroosh Pezeshki
 
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -60,8 +60,7 @@ public class Badi {
     		return ERROR_OUTPUT;
     	}
         final int yearIndex = badiYear-171;
-        final int nawRuz = nawRuzParameter(yearIndex);
-        final int bdoy = getBadiDayOfTheYearFromMonthAndDay(badiMonth, badiDay, yearIndex, nawRuz);
+        final int bdoy = getBadiDayOfTheYearFromMonthAndDay(badiMonth, badiDay, yearIndex);
         return badiToGregorianDateFromDoyAndYear(badiYear, bdoy);
     }
 
@@ -128,7 +127,7 @@ public class Badi {
      * @return array with the Badi Dates: Day of the month, month, year day of
      *         the year, holyday, year in vahid, vahid, kull-i-shay
      */
-	private static int[] getBadiDateFromGregorianDoyAndYear(final int year,
+	public static int[] getBadiDateFromGregorianDoyAndYear(final int year,
 			final int doy) {
     	if (doy>366||doy<1||year<ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR||year>UPPER_YEAR_LIMIT){
     		return ERROR_OUTPUT;
@@ -140,9 +139,6 @@ public class Badi {
 
 		final int badiYear;
 		final int dayOfBadiYear;
-		final int badiMonth;
-		int yearInVahid;
-		int tmpkull;
 		// Calculate day number of the Badi Year
         if (doy < 79 + leapyear + nawRuz) {
             dayOfBadiYear = doy + 287 - nawRuzLastYear;
@@ -152,7 +148,91 @@ public class Badi {
             badiYear = year - 1843;
         }
 
-        // Calculate current Badi date
+        return getFullBadiDateFromYearAndDoy(badiYear, dayOfBadiYear);
+	}
+
+    /**
+     * Returns the Gregorian Date of the next feast (or 1st day of Ayyam'i'Ha). 
+     * If the input day is a feast day the one after that is shown.
+     * 
+     */
+    public static int[] getNextFeastDate(final int year, final int month,
+            final int day){
+    	final int[] badiDate = Gregorian2Badi(year, month, day);
+    	final int bm = badiDate[1];
+    	if (bm==20){
+    		return Badi2Gregorian(badiDate[0]+1, 1, 1);
+    	}
+    	return Badi2Gregorian(badiDate[0], bm+1, 1);
+    }
+
+
+    /**
+     * Returns the Badi Date of the next holyday. 
+     * If the input day is a feast day the one after that is shown.
+     * 
+     */
+    public static int[] getNextHolydayBadiDate(final int year, final int month,
+            final int day){
+        final int yearIndex = year-171;
+        final int dayOfBadiYear = getBadiDayOfTheYearFromMonthAndDay(month, day, yearIndex);
+        for(int i=1;i<HOLYDAY_DOY.length;i++){
+        	final int hd=getHolydayDoy(yearIndex, i);
+        	if(hd>dayOfBadiYear){
+            	return getFullBadiDateFromYearAndDoy(year, hd);        		
+        	}
+        }
+    	return getFullBadiDateFromYearAndDoy(year+1, 1);
+    }
+
+    /**
+     * Returns the Gregorian Date of the next holyday. 
+     * If the input day is a feast day the one after that is shown.
+     * 
+     */
+    public static int[] getNextHolydayGregorianDate(final int year, final int month,
+            final int day){
+    	final int[] badiDate = Gregorian2Badi(year, month, day);
+    	final int[] nextBadiDate = getNextHolydayBadiDate(badiDate[0], badiDate[1], badiDate[2]);
+    	return badiToGregorianDateFromDoyAndYear(nextBadiDate[0], nextBadiDate[3]);
+    }
+
+    /**
+     * Returns the day in March that is Naw-Ruz.
+     */
+    static int nawRuzDayOfMarch(final int gregorianYear) {
+        if (gregorianYear < 1900)
+            throw new IllegalArgumentException(
+                    "Naw-Ruz only defined for dates after 1900");
+        if (gregorianYear < 2014)
+            return 21; // Use the western date for Naw-Ruz prior to 2014
+        final int yearIndex = gregorianYear - 2014;
+        return 20 + nawRuzParameter(yearIndex);
+    }
+
+    /**
+     * Returns the Holyday.
+     */
+    static String getHolyday(final int index) {
+        if (index < HOLYDAYS.length && index >= 0) {
+            return HOLYDAYS[index];
+        }
+        return "";
+    }
+
+    /**
+     * Returns the full Badi date from the badi yea and day of year.
+     */
+	private static int[] getFullBadiDateFromYearAndDoy(final int badiYear,
+			final int dayOfBadiYear) {
+        final int yearIndex = badiYear - 171;
+        final int nawRuz = nawRuzParameter(yearIndex);
+        final int nawRuzLastYear = nawRuzParameter(yearIndex - 1);
+
+		final int badiMonth;
+		int yearInVahid;
+		int tmpkull;
+		// Calculate current Badi date
         int badiDay = dayOfBadiYear % 19;
         if (badiDay == 0)
             badiDay = 19;
@@ -185,81 +265,12 @@ public class Badi {
 	}
 
     /**
-     * Returns the Gregorian Date of the next feast (or 1st day of Ayyam'i'Ha). 
-     * If the input day is a feast day the one after that is shown.
-     * 
-     */
-    public static int[] getNextFeastDate(final int year, final int month,
-            final int day){
-    	final int[] badiDate = Gregorian2Badi(year, month, day);
-    	final int bm = badiDate[1];
-    	if (bm==20){
-    		return Badi2Gregorian(badiDate[0]+1, 1, 1);
-    	}
-    	return Badi2Gregorian(badiDate[0], bm+1, 1);
-    }
-
-
-    /**
-     * Returns the Badi Date of the next holyday. 
-     * If the input day is a feast day the one after that is shown.
-     * 
-     */
-    public static int[] getNextHolydayBadiDate(final int year, final int month,
-            final int day){
-        final int yearIndex = year-171;
-        final int nawRuz = nawRuzParameter(yearIndex);
-        final int dayOfBadiYear = getBadiDayOfTheYearFromMonthAndDay(month, day, yearIndex, nawRuz);
-        for(int i=1;i<HOLYDAY_DOY.length;i++){
-        	final int hd=getHolydayDoy(yearIndex, i);
-        	if(hd>dayOfBadiYear){
-            	return badiToGregorianDateFromDoyAndYear(year, hd);        		
-        	}
-        }
-    	return badiToGregorianDateFromDoyAndYear(year+1, 1);
-    }
-
-    /**
-     * Returns the Gregorian Date of the next holyday. 
-     * If the input day is a feast day the one after that is shown.
-     * 
-     */
-    public static int[] getNextHolydayGregorianDate(final int year, final int month,
-            final int day){
-    	final int[] badiDate = Gregorian2Badi(year, month, day);
-    	return getNextHolydayBadiDate(badiDate[0], badiDate[1], badiDate[2]);
-    }
-
-    /**
-     * Returns the day in March that is Naw-Ruz.
-     */
-    static int nawRuzDayOfMarch(final int gregorianYear) {
-        if (gregorianYear < 1900)
-            throw new IllegalArgumentException(
-                    "Naw-Ruz only defined for dates after 1900");
-        if (gregorianYear < 2014)
-            return 21; // Use the western date for Naw-Ruz prior to 2014
-        final int yearIndex = gregorianYear - 2014;
-        return 20 + nawRuzParameter(yearIndex);
-    }
-
-    /**
-     * Returns the Holyday.
-     */
-    static String getHolyday(final int index) {
-        if (index < HOLYDAYS.length && index >= 0) {
-            return HOLYDAYS[index];
-        }
-        return "";
-    }
-
-
-    /**
      * Returns the day of the Badi year from Badi month and day. 
      */
-    private static int getBadiDayOfTheYearFromMonthAndDay(final int badiMonth,
-			final int badiDay, final int yearIndex, final int nawRuz) {
+    private static int getBadiDayOfTheYearFromMonthAndDay( final int badiMonth,
+			final int badiDay, final int yearIndex ) {
 		final int bdoy;
+		final int nawRuz = nawRuzParameter(yearIndex);
 		// special case Month of Ala after Ayyam'i'Ha
         if (badiMonth == 20) {
             bdoy = 346 + nawRuzParameter(yearIndex + 1) * (1 - nawRuz)
@@ -339,9 +350,9 @@ public class Badi {
      * test run in console with arguments. usage: java Badi year month day
      * [method] method:1 Gregorian to Badi (default) 
      * 			method:2 Badi to Gregorian
-     * 			method:3 Next 19 day feast
-     * 			method:4 Next Holyday in Badi date
-     * 			method:5 Next Holyday in Gregorian date
+     * 			method:3 Next 19 day feast (input Gregorian date)
+     * 			method:4 Next Holyday in Badi date (input Badi date)
+     * 			method:5 Next Holyday in Gregorian date (input Gregorian date)
      * 
      * @param args
      *            console input
