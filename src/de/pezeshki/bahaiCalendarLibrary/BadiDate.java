@@ -13,10 +13,13 @@
  * limitations under the License.
  *
  */
-package BahaiCalendarLibrary;
+package de.pezeshki.bahaiCalendarLibrary;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+
+import org.joda.time.DateTime;
+import org.joda.time.base.BaseDateTime;
 
 /**
  * The Badi and Gregorian date converter (from 1900-2064). Initial author
@@ -27,19 +30,6 @@ public class BadiDate implements BaseBadiDate {
 	private static final byte[] NAW_RUZ_OFFSET = { 1, 1, 0, 0, 1, 1, 0, 0, 1,
 			1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
 			0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-	private static final int[] BIRTH_OF_BAB_DOY = { 217, 238, 227, 216, 234,
-			223, 213, 232, 220, 210, 228, 217, 235, 224, 214, 233, 223, 211,
-			230, 219, 238, 226, 215, 234, 224, 213, 232, 221, 210, 228, 217,
-			236, 225, 214, 233, 223, 212, 230, 219, 237, 227, 215, 234, 224,
-			213, 232, 220, 209, 228, 218, 236 };
-	// TODO: change to enum
-	private static final int[] HOLYDAY_DOY = { 1, 32, 40, 43, 65, 70, 112, 214,
-			237, 251, 253 };
-	private static final String[] HOLYDAYS = { "Naw-Ruz", "1st Ridvan",
-			"9th Ridvan", "12th Ridvan", "Decleration of the Bab",
-			"Ascension of Baha'u'llah", "Martyrdom of the Bab",
-			"Birth of the Bab", "Birth of Baha'u'llah", "Day of the Covenant",
-			"Ascension of Abdu'l-Baha" };
 	public static final int UPPER_YEAR_LIMIT = 2014 + NAW_RUZ_OFFSET.length - 1;
 	public static final int UPPER_YEAR_LIMIT_BADI = 171 + NAW_RUZ_OFFSET.length - 1;
 	public static final int ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR = 1843;
@@ -55,6 +45,10 @@ public class BadiDate implements BaseBadiDate {
 	private final int _yearInVahid;
 	private final int _vahid;
 	private final int _kullIShay;
+	private final int _gregorianYear;
+	private final int _gregorianMonth;
+	private final int _gregorianDay;
+	private final BahaiHolyday _holyday;
 
 	private BadiDate(final int badiDay, final int badiMonth,
 			final int badiYear, final int badiDoy, final Calendar gregDate,
@@ -72,6 +66,10 @@ public class BadiDate implements BaseBadiDate {
 			tmpkull = 361;
 		}
 		_kullIShay = (badiYear - tmpkull) / 361 + 1;
+		_gregorianDay = _gregDate.get(Calendar.DAY_OF_MONTH);
+		_gregorianMonth = _gregDate.get(Calendar.MONTH) + 1;
+		_gregorianYear = _gregDate.get(Calendar.YEAR);
+		_holyday = BahaiHolyday.getHolyday(_badiDoy, _badiYear);
 
 	}
 
@@ -79,14 +77,18 @@ public class BadiDate implements BaseBadiDate {
 	 * Creates a BadiDate from Badi year, month and day.
 	 *
 	 * @param badiYear
+	 *            the Baha'i year
 	 * @param badiMonth
+	 *            the Baha'i month
 	 * @param badiDay
-	 * @return
+	 *            the Baha'i day of the month
+	 * @return the Badi date
 	 * @throws IllegalArgumentException
+	 *             arguments are out of bound
 	 */
 	public static BadiDate createFromBadiDate(final int badiYear,
 			final int badiMonth, final int badiDay)
-					throws IllegalArgumentException {
+			throws IllegalArgumentException {
 		try {
 			checkBadiDayAndMonthForValidity(badiDay, badiMonth);
 			checkBadiYearForValidity(badiYear);
@@ -106,9 +108,12 @@ public class BadiDate implements BaseBadiDate {
 	 * Creates a BadiDate from Badi year and day of year.
 	 *
 	 * @param badiYear
+	 *            the Baha'i year
 	 * @param badiDayOfYear
-	 * @return
+	 *            the day of the Baha'i year
+	 * @return the Badi date
 	 * @throws IllegalArgumentException
+	 *             year or day of the year are out of bound
 	 */
 	public static BadiDate createFromBadiYearAndDayOfYear(final int badiYear,
 			final int badiDayOfYear) throws IllegalArgumentException {
@@ -130,41 +135,43 @@ public class BadiDate implements BaseBadiDate {
 	/**
 	 * Creates a BadiDate from a Gregorian Calendar.
 	 *
-	 * @param badiYear
-	 * @param badiDayOfYear
-	 * @return
+	 * @param Calendar
+	 *            (GregorianCalendar)
+	 * @return The Badi date
 	 * @throws IllegalArgumentException
+	 *             Year is less than 1844 or greater than UPPER_YEAR_LIMIT
 	 */
-	public static BadiDate createFromGregorianCalendar(
-			final Calendar gregorianDate) throws IllegalArgumentException {
-		final Calendar calendar = (Calendar) gregorianDate.clone();
+	public static BadiDate createFromGregorianCalendar(final Calendar calendar)
+			throws IllegalArgumentException {
 		final int year = calendar.get(Calendar.YEAR);
+		final int doy = calendar.get(Calendar.DAY_OF_YEAR);
 		try {
 			checkGregorianYearForValidity(year);
-			;
 		} catch (final IllegalArgumentException e) {
 			throw new IllegalArgumentException(e);
 		}
-		final int doy = calendar.get(Calendar.DAY_OF_YEAR);
-		final int yearIndex = calendar.get(Calendar.YEAR) - 2014;
-		final int leapyear = isLeapYear(year);
-		final int nawRuz = nawRuzParameter(yearIndex);
-		final int nawRuzLastYear = nawRuzParameter(yearIndex - 1);
+		return createFromGregorianDoyAndYear(year, doy);
+	}
 
-		final int badiYear;
-		final int badiDayOfYear;
-		// Calculate day number of the Badi Year
-		if (doy < 79 + leapyear + nawRuz) {
-			badiDayOfYear = doy + 287 - nawRuzLastYear;
-			badiYear = year - 1844;
-		} else {
-			badiDayOfYear = doy - 78 - leapyear - nawRuz;
-			badiYear = year - 1843;
+	/**
+	 * Creates a BadiDate from Joda DateTime.
+	 *
+	 * @param Joda
+	 *            DateTime
+	 * @return The Badi date
+	 * @throws IllegalArgumentException
+	 *             Year is less than 1844 or greater than UPPER_YEAR_LIMIT
+	 */
+	public static BadiDate createFromDateTime(final BaseDateTime gregorianDate)
+			throws IllegalArgumentException {
+		final int year = gregorianDate.getYear();
+		try {
+			checkGregorianYearForValidity(year);
+		} catch (final IllegalArgumentException e) {
+			throw new IllegalArgumentException(e);
 		}
-		final int[] badiDayAndMonth = getBadiDayAndMonth(badiDayOfYear,
-				yearIndex);
-		return new BadiDate(badiDayAndMonth[0], badiDayAndMonth[1], badiYear,
-				badiDayOfYear, calendar, yearIndex);
+		final int doy = gregorianDate.getDayOfYear();
+		return createFromGregorianDoyAndYear(year, doy);
 	}
 
 	@Override
@@ -189,17 +196,17 @@ public class BadiDate implements BaseBadiDate {
 
 	@Override
 	public int getGregorianDay() {
-		return _gregDate.get(Calendar.DAY_OF_MONTH);
+		return _gregorianDay;
 	}
 
 	@Override
 	public int getGregorianMonth() {
-		return _gregDate.get(Calendar.MONTH) + 1;
+		return _gregorianMonth;
 	}
 
 	@Override
 	public int getGregorianYear() {
-		return _gregDate.get(Calendar.YEAR);
+		return _gregorianYear;
 	}
 
 	@Override
@@ -213,8 +220,29 @@ public class BadiDate implements BaseBadiDate {
 	}
 
 	@Override
-	public int getHolyday() {
-		return getHolydayIndex(_badiDoy, _yearIndex);
+	public BaseDateTime getDateTime() {
+		return new DateTime(_gregorianYear, _gregorianMonth, _gregorianDay, 0,
+				0);
+	}
+
+	@Override
+	public BahaiHolyday getHolyday() {
+		return _holyday;
+	}
+
+	@Override
+	public int getVahid() {
+		return _vahid;
+	}
+
+	@Override
+	public int getYearInVahid() {
+		return _yearInVahid;
+	}
+
+	@Override
+	public int getKullIShay() {
+		return _kullIShay;
 	}
 
 	private static void checkBadiDayAndMonthForValidity(final int badiDay,
@@ -276,11 +304,7 @@ public class BadiDate implements BaseBadiDate {
 
 	}
 
-	/**
-	 * Returns the date of the next feast (or 1st day of Ayyam'i'Ha). If the
-	 * input day is a feast day the one after that is shown.
-	 *
-	 */
+	@Override
 	public BadiDate getNextFeastDate() {
 		if (_badiMonth == 20) {
 			return createFromBadiDate(_badiYear + 1, 1, 1);
@@ -288,19 +312,9 @@ public class BadiDate implements BaseBadiDate {
 		return createFromBadiDate(_badiYear, _badiMonth + 1, 1);
 	}
 
-	/**
-	 * Returns the date of the next holyday. If the input day is a feast day the
-	 * one after that is shown.
-	 *
-	 */
+	@Override
 	public BadiDate getNextHolydayDate() {
-		for (int i = 1; i < HOLYDAY_DOY.length; i++) {
-			final int hd = getHolydayDoy(_yearIndex, i);
-			if (hd > _badiDoy) {
-				return createFromBadiYearAndDayOfYear(_badiYear, hd);
-			}
-		}
-		return createFromBadiYearAndDayOfYear(_badiYear + 1, 1);
+		return BahaiHolyday.getNextHolydayDate(this);
 	}
 
 	/**
@@ -311,16 +325,6 @@ public class BadiDate implements BaseBadiDate {
 			return 21; // Use the western date for Naw-Ruz prior to 2014
 		}
 		return 20 + nawRuzParameter(_yearIndex);
-	}
-
-	/**
-	 * Returns the Holyday.
-	 */
-	static String getHolyday(final int index) {
-		if (index < HOLYDAYS.length && index >= 0) {
-			return HOLYDAYS[index];
-		}
-		return "";
 	}
 
 	/**
@@ -359,35 +363,6 @@ public class BadiDate implements BaseBadiDate {
 	}
 
 	/**
-	 * Returns the day of the Badi year for the Holyday.
-	 */
-	private static int getHolydayIndex(final int dayOfBadiYear,
-			final int yearIndex) {
-		for (int i = 0; i < HOLYDAY_DOY.length; i++) {
-			final int hdday = getHolydayDoy(yearIndex, i);
-			if (hdday == dayOfBadiYear) {
-				return i;
-			}
-		}
-		return -1;
-	}
-
-	/**
-	 * Returns the day of the Badi year of the holyday.
-	 */
-	private static int getHolydayDoy(final int yearIndex, final int holydayIndex) {
-		final int hdday = HOLYDAY_DOY[holydayIndex];
-		if (yearIndex > 0) {
-			if (holydayIndex == 7) {
-				return twinBDays(yearIndex);
-			} else if (holydayIndex == 8) {
-				return twinBDays(yearIndex) + 1;
-			}
-		}
-		return hdday;
-	}
-
-	/**
 	 * Returns a 1 if the Gregorian year is a leap year, otherwise 0.
 	 */
 	private static int isLeapYear(final int year) {
@@ -409,22 +384,6 @@ public class BadiDate implements BaseBadiDate {
 					+ (2014 + NAW_RUZ_OFFSET.length - 1));
 		}
 		return NAW_RUZ_OFFSET[yearIndex];
-	}
-
-	/**
-	 * Return the Day of the year for the Birth of Bab; list for the years
-	 * 2014-2064.
-	 *
-	 * @param yearIndex
-	 *            int>=0; 0 for 2014
-	 * @return -1 for error otherwise the day of the year.
-	 */
-	private static int twinBDays(final int yearIndex) {
-		if (yearIndex < BIRTH_OF_BAB_DOY.length && yearIndex >= 0) {
-			return BIRTH_OF_BAB_DOY[yearIndex];
-		} else {
-			return -1;
-		}
 	}
 
 	/**
@@ -455,18 +414,29 @@ public class BadiDate implements BaseBadiDate {
 		return calendar;
 	}
 
-	@Override
-	public int getVahid() {
-		return _vahid;
-	}
+	private static BadiDate createFromGregorianDoyAndYear(final int year,
+			final int doy) {
+		final int yearIndex = year - 2014;
+		final Calendar calendar = new GregorianCalendar();
+		calendar.set(Calendar.YEAR, year);
+		calendar.set(Calendar.DAY_OF_YEAR, doy);
+		final int leapyear = isLeapYear(year);
+		final int nawRuz = nawRuzParameter(yearIndex);
+		final int nawRuzLastYear = nawRuzParameter(yearIndex - 1);
 
-	@Override
-	public int getYearInVahid() {
-		return _yearInVahid;
-	}
-
-	@Override
-	public int getKullIShay() {
-		return _kullIShay;
+		final int badiYear;
+		final int badiDayOfYear;
+		// Calculate day number of the Badi Year
+		if (doy < 79 + leapyear + nawRuz) {
+			badiDayOfYear = doy + 287 - nawRuzLastYear;
+			badiYear = year - 1844;
+		} else {
+			badiDayOfYear = doy - 78 - leapyear - nawRuz;
+			badiYear = year - 1843;
+		}
+		final int[] badiDayAndMonth = getBadiDayAndMonth(badiDayOfYear,
+				yearIndex);
+		return new BadiDate(badiDayAndMonth[0], badiDayAndMonth[1], badiYear,
+				badiDayOfYear, calendar, yearIndex);
 	}
 }

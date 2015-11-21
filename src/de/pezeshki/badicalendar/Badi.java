@@ -13,18 +13,19 @@
  * limitations under the License.
  *
  */
-package badicalendar;
+package de.pezeshki.badicalendar;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import BahaiCalendarLibrary.BadiDate;
+import de.pezeshki.bahaiCalendarLibrary.BadiDate;
+import de.pezeshki.bahaiCalendarLibrary.BahaiHolyday;
 
 /**
  * Calculates current Badi and Gregorian date (from 1900-2064). Initial author
  * Soroosh Pezeshki April 2015
  */
-
+@Deprecated
 public class Badi {
 
 	private static final byte[] NAW_RUZ_OFFSET = { 1, 1, 0, 0, 1, 1, 0, 0, 1,
@@ -442,5 +443,9 @@ public class Badi {
 				+ badiDate.getBadiDayOfYear());
 		System.out.println("Day of the Gregorian year: "
 				+ badiDate.getGregorianDayOfYear());
+		final BahaiHolyday bahaiHolyday = badiDate.getHolyday();
+		if (bahaiHolyday != null) {
+			System.out.println(bahaiHolyday.asString());
+		}
 	}
 }

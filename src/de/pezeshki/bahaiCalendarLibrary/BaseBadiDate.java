@@ -13,9 +13,11 @@
  * limitations under the License.
  *
  */
-package BahaiCalendarLibrary;
+package de.pezeshki.bahaiCalendarLibrary;
 
 import java.util.Calendar;
+
+import org.joda.time.base.BaseDateTime;
 
 /**
  * The Badi and Gregorian date converter (from 1900-2064). Initial author
@@ -69,9 +71,9 @@ public interface BaseBadiDate {
 	Calendar getCalendar();
 
 	/**
-	 * Returns an index for the Baha'i Holyday.
+	 * If a Holyday it will be returned otherwise null.
 	 */
-	int getHolyday();
+	BahaiHolyday getHolyday();
 
 	/**
 	 * Returns the Vahid.
@@ -87,5 +89,24 @@ public interface BaseBadiDate {
 	 * Returns the Kull'i'Shay.
 	 */
 	int getKullIShay();
+
+	/**
+	 * Returns the date of the next holyday. If the input day is a feast day the
+	 * one after that is shown.
+	 *
+	 */
+	BadiDate getNextHolydayDate();
+
+	/**
+	 * Returns the date of the next feast (or 1st day of Ayyam'i'Ha). If the
+	 * input day is a feast day the one after that is shown.
+	 *
+	 */
+	BadiDate getNextFeastDate();
+
+	/**
+	 * Returns the Joda time for the Gregorian date.
+	 */
+	BaseDateTime getDateTime();
 
 }
