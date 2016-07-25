@@ -53,6 +53,7 @@ public class BadiDate implements BaseBadiDate {
 	private BadiDate(final int badiDay, final int badiMonth,
 			final int badiYear, final int badiDoy, final Calendar gregDate,
 			final int yearIndex) {
+		
 		_badiDay = badiDay;
 		_badiMonth = badiMonth;
 		_badiYear = badiYear;
@@ -70,7 +71,6 @@ public class BadiDate implements BaseBadiDate {
 		_gregorianMonth = _gregDate.get(Calendar.MONTH) + 1;
 		_gregorianYear = _gregDate.get(Calendar.YEAR);
 		_holyday = BahaiHolyday.getHolyday(_badiDoy, _badiYear);
-
 	}
 
 	/**
@@ -439,4 +439,53 @@ public class BadiDate implements BaseBadiDate {
 		return new BadiDate(badiDayAndMonth[0], badiDayAndMonth[1], badiYear,
 				badiDayOfYear, calendar, yearIndex);
 	}
+	
+
+	/**
+	 * Creates a BadiDate from a Gregorian Calendar and considers if the sun has set.
+	 *
+	 * @param Calendar
+	 *            (GregorianCalendar)
+	 * @param sunset
+	 * 			  Has the sun set?           
+	 * @return The Badi date
+	 * @throws IllegalArgumentException
+	 *             Year is less than 1844 or greater than UPPER_YEAR_LIMIT
+	 */
+	public static BadiDate createFromGregorianCalendarWithSunset(final Calendar calendar, 
+			final boolean sunset) throws IllegalArgumentException {
+		
+		final int year = calendar.get(Calendar.YEAR);
+		final int doy = calendar.get(Calendar.DAY_OF_YEAR) + (sunset==true ? 1 : 0);
+		try {
+			checkGregorianYearForValidity(year);
+		} catch (final IllegalArgumentException e) {
+			throw new IllegalArgumentException(e);
+		}
+		return createFromGregorianDoyAndYear(year, doy);
+	}
+
+	/**
+	 * Creates a BadiDate from Joda DateTime and considers if the sun has set.
+	 *
+	 * @param Joda
+	 *            DateTime
+	 * @param sunset
+	 * 			  Has the sun set?           
+	 * @return The Badi date
+	 * @throws IllegalArgumentException
+	 *             Year is less than 1844 or greater than UPPER_YEAR_LIMIT
+	 */
+	public static BadiDate createFromDateTimeWithSunset(final BaseDateTime gregorianDate,
+			final boolean sunset) throws IllegalArgumentException {
+		final int year = gregorianDate.getYear();
+		try {
+			checkGregorianYearForValidity(year);
+		} catch (final IllegalArgumentException e) {
+			throw new IllegalArgumentException(e);
+		}
+		final int doy = gregorianDate.getDayOfYear() + (sunset==true ? 1 : 0);
+		return createFromGregorianDoyAndYear(year, doy);
+	}
+
 }
