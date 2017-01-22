@@ -98,13 +98,9 @@ public enum BahaiHolyday {
 		case 10:
 			return BahaiHolyday.ASCENSION_OF_ABDUL_BAHA;
 		case 7:
-			if (yearIndex < 1) {
-				return BahaiHolyday.BIRTH_OF_THE_BAB;
-			}
+			return BahaiHolyday.BIRTH_OF_THE_BAB;
 		case 8:
-			if (yearIndex < 1) {
-				return BahaiHolyday.BIRTH_OF_BAHAULLAH;
-			}
+			return BahaiHolyday.BIRTH_OF_BAHAULLAH;
 		}
 		return null;
 	}
@@ -133,7 +129,7 @@ public enum BahaiHolyday {
 
 		// Special case: Birth of the Bab and Baha'u'llah after 171.
 		if (yearIndex > 0 && (index == 7 || index == 8)) {
-			if (yearIndex - 171 > UPPER_YEAR_LIMIT_BADI) {
+			if (badiYear > UPPER_YEAR_LIMIT_BADI) {
 				throw new IllegalArgumentException(
 						"Badi year has to be less than  "
 								+ UPPER_YEAR_LIMIT_BADI);
@@ -154,10 +150,6 @@ public enum BahaiHolyday {
 		final int badiYear = badiDate.getBadiYear();
 		final int dayOfYear = badiDate.getBadiDayOfYear();
 		final int yearIndex = badiYear - FIRST_YEAR;
-		if (badiYear > UPPER_YEAR_LIMIT_BADI) {
-			throw new IllegalArgumentException(
-					"Badi year has to be less than  " + UPPER_YEAR_LIMIT_BADI);
-		}
 
 		for (int doyHolyday : HOLYDAY_DOY) {
 			final Integer index = HOLYDAY_DOY.indexOf(doyHolyday);

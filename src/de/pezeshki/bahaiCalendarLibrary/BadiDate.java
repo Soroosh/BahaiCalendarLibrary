@@ -62,10 +62,11 @@ public class BadiDate implements BaseBadiDate {
 		_yearIndex = yearIndex;
 		_yearInVahid = badiYear % 19 == 0 ? 19 : badiYear % 19;
 		_vahid = (badiYear - _yearInVahid) / 19 + 1;
-		int tmpkull = badiYear % 361;
-		if (tmpkull == 0) {
-			tmpkull = 361;
-		}
+		final int tmpkull = badiYear % 361;
+		// Uncomment if data is available
+		//		if (tmpkull == 0) {
+		//			tmpkull = 361;
+		//		}
 		_kullIShay = (badiYear - tmpkull) / 361 + 1;
 		_gregorianDay = _gregDate.get(Calendar.DAY_OF_MONTH);
 		_gregorianMonth = _gregDate.get(Calendar.MONTH) + 1;
@@ -89,12 +90,8 @@ public class BadiDate implements BaseBadiDate {
 	public static BadiDate createFromBadiDate(final int badiYear,
 			final int badiMonth, final int badiDay)
 			throws IllegalArgumentException {
-		try {
-			checkBadiDayAndMonthForValidity(badiDay, badiMonth);
-			checkBadiYearForValidity(badiYear);
-		} catch (final IllegalArgumentException e) {
-			throw new IllegalArgumentException(e);
-		}
+		checkBadiDayAndMonthForValidity(badiDay, badiMonth);
+		checkBadiYearForValidity(badiYear);
 		final int yearIndex = badiYear - 171;
 		final int badiDoy = getBadiDayOfTheYearFromMonthAndDay(badiMonth,
 				badiDay, yearIndex);
@@ -117,12 +114,8 @@ public class BadiDate implements BaseBadiDate {
 	 */
 	public static BadiDate createFromBadiYearAndDayOfYear(final int badiYear,
 			final int badiDayOfYear) throws IllegalArgumentException {
-		try {
-			checkDoyForValidity(badiDayOfYear);
-			checkBadiYearForValidity(badiYear);
-		} catch (final IllegalArgumentException e) {
-			throw new IllegalArgumentException(e);
-		}
+		checkDoyForValidity(badiDayOfYear);
+		checkBadiYearForValidity(badiYear);
 		final int yearIndex = badiYear - 171;
 		final int[] badiDayAndMonth = getBadiDayAndMonth(badiDayOfYear,
 				yearIndex);
@@ -145,11 +138,7 @@ public class BadiDate implements BaseBadiDate {
 			throws IllegalArgumentException {
 		final int year = calendar.get(Calendar.YEAR);
 		final int doy = calendar.get(Calendar.DAY_OF_YEAR);
-		try {
-			checkGregorianYearForValidity(year);
-		} catch (final IllegalArgumentException e) {
-			throw new IllegalArgumentException(e);
-		}
+		checkGregorianYearForValidity(year);
 		return createFromGregorianDoyAndYear(year, doy);
 	}
 
@@ -165,11 +154,7 @@ public class BadiDate implements BaseBadiDate {
 	public static BadiDate createFromDateTime(final BaseDateTime gregorianDate)
 			throws IllegalArgumentException {
 		final int year = gregorianDate.getYear();
-		try {
-			checkGregorianYearForValidity(year);
-		} catch (final IllegalArgumentException e) {
-			throw new IllegalArgumentException(e);
-		}
+		checkGregorianYearForValidity(year);
 		final int doy = gregorianDate.getDayOfYear();
 		return createFromGregorianDoyAndYear(year, doy);
 	}
@@ -293,7 +278,7 @@ public class BadiDate implements BaseBadiDate {
 
 	private static void checkGregorianYearForValidity(final int year)
 			throws IllegalArgumentException {
-		if (year < ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR) {
+		if (year <= ZEROTH_BADI_YEAR_AS_GREGORIAN_YEAR) {
 			throw new IllegalArgumentException(
 					"Year has to be greater than or equal to 1844.");
 		}
@@ -375,7 +360,7 @@ public class BadiDate implements BaseBadiDate {
 	 * Returns 1 if Naw-Ruz for the Gregorian year is on March 21st; 0 if on
 	 * March 20th.
 	 */
-	private static int nawRuzParameter(final int yearIndex) {
+	static int nawRuzParameter(final int yearIndex) {
 		if (yearIndex < 0) {
 			return 1; // Use the western date for Naw-Ruz prior to 172
 		}
@@ -457,11 +442,7 @@ public class BadiDate implements BaseBadiDate {
 		
 		final int year = calendar.get(Calendar.YEAR);
 		final int doy = calendar.get(Calendar.DAY_OF_YEAR) + (sunset==true ? 1 : 0);
-		try {
-			checkGregorianYearForValidity(year);
-		} catch (final IllegalArgumentException e) {
-			throw new IllegalArgumentException(e);
-		}
+		checkGregorianYearForValidity(year);
 		return createFromGregorianDoyAndYear(year, doy);
 	}
 
@@ -479,11 +460,7 @@ public class BadiDate implements BaseBadiDate {
 	public static BadiDate createFromDateTimeWithSunset(final BaseDateTime gregorianDate,
 			final boolean sunset) throws IllegalArgumentException {
 		final int year = gregorianDate.getYear();
-		try {
-			checkGregorianYearForValidity(year);
-		} catch (final IllegalArgumentException e) {
-			throw new IllegalArgumentException(e);
-		}
+		checkGregorianYearForValidity(year);
 		final int doy = gregorianDate.getDayOfYear() + (sunset==true ? 1 : 0);
 		return createFromGregorianDoyAndYear(year, doy);
 	}
